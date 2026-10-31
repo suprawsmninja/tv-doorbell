@@ -10,6 +10,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.OptIn;
@@ -19,7 +20,8 @@ import androidx.media3.common.Player;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.ExoPlayer;
-import androidx.media3.exoplayer.rtsp.RtspMediaSource;
+import androidx.media3.exoplayer.hls.HlsMediaSource;
+import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.ui.PlayerView;
 
 /** The corner tile: a muted, non-focusable overlay window that closes itself. */
@@ -30,6 +32,7 @@ final class Overlay {
 
     private final Context context;
     private final Settings settings;
+    private final HaClient ha;
     private final WindowManager wm;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable autoHide = this::hide;
@@ -39,9 +42,10 @@ final class Overlay {
     private ExoPlayer player;
     private int retries;
 
-    Overlay(Context context, Settings settings) {
+    Overlay(Context context, Settings settings, HaClient ha) {
         this.context = context;
         this.settings = settings;
+        this.ha = ha;
         this.wm = context.getSystemService(WindowManager.class);
     }
 
@@ -75,6 +79,10 @@ final class Overlay {
         wm.addView(tile, lp);
         tile.animate().alpha(1f).setDuration(250).start();
 
+        View current = tile;
+        ha.requestSnapshot(bitmap -> {
+            if (tile == current) ((ImageView) current.findViewById(R.id.snapshot)).setImageBitmap(bitmap);
+        });
         retries = 0;
         play();
     }
@@ -91,14 +99,17 @@ final class Overlay {
     }
 
     private void play() {
-        String url = settings.streamUrl();
-        if (url.isEmpty()) {
-            status.setText("No camera link set");
-            return;
-        }
         status.setText("Connecting…");
         status.setVisibility(View.VISIBLE);
+        View current = tile;
+        ha.requestStream(url -> {
+            if (tile != current) return;
+            if (url == null) retry();
+            else start(url);
+        });
+    }
 
+    private void start(String url) {
         // Small buffers: a doorbell is only useful live.
         player = new ExoPlayer.Builder(context)
                 .setLoadControl(new DefaultLoadControl.Builder()
@@ -106,33 +117,36 @@ final class Overlay {
                         .build())
                 .build();
         player.setVolume(0f);
-        player.setMediaSource(new RtspMediaSource.Factory()
-                .setForceUseRtpTcp(true)
+        player.setMediaSource(new HlsMediaSource.Factory(new DefaultHttpDataSource.Factory())
                 .createMediaSource(MediaItem.fromUri(Uri.parse(url))));
         player.addListener(new Player.Listener() {
             @Override
             public void onRenderedFirstFrame() {
-                if (status != null) status.setVisibility(View.GONE);
+                if (tile == null) return;
+                status.setVisibility(View.GONE);
+                tile.findViewById(R.id.snapshot).setVisibility(View.GONE);
             }
 
             @Override
             public void onPlayerError(PlaybackException error) {
                 Log.w(DoorbellService.TAG, "stream error", error);
                 releasePlayer();
-                if (tile == null) return;
-                if (++retries <= MAX_RETRIES) {
-                    status.setText("Reconnecting…");
-                    status.setVisibility(View.VISIBLE);
-                    handler.postDelayed(Overlay.this::play, RETRY_MS);
-                } else {
-                    status.setText("Camera unavailable");
-                    status.setVisibility(View.VISIBLE);
-                }
+                if (tile != null) retry();
             }
         });
         ((PlayerView) tile.findViewById(R.id.video)).setPlayer(player);
         player.setPlayWhenReady(true);
         player.prepare();
+    }
+
+    private void retry() {
+        if (++retries <= MAX_RETRIES) {
+            status.setText("Reconnecting…");
+            handler.postDelayed(this::play, RETRY_MS);
+        } else {
+            status.setText("Camera unavailable");
+        }
+        status.setVisibility(View.VISIBLE);
     }
 
     private void releasePlayer() {

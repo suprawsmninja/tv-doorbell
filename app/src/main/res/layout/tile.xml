@@ -9,19 +9,25 @@
     android:orientation="vertical">
 
     <FrameLayout
-        android:layout_width="320dp"
-        android:layout_height="240dp">
+        android:layout_width="240dp"
+        android:layout_height="180dp">
+
+        <ImageView
+            android:id="@+id/snapshot"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#000000"
+            android:scaleType="centerCrop" />
 
         <!-- texture_view so the video clips to the rounded tile. -->
         <androidx.media3.ui.PlayerView
             android:id="@+id/video"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#000000"
             app:resize_mode="zoom"
             app:surface_type="texture_view"
             app:use_controller="false"
-            app:shutter_background_color="#000000" />
+            app:shutter_background_color="#00000000" />
 
         <TextView
             android:id="@+id/status"
@@ -29,7 +35,9 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:textColor="#B3FFFFFF"
-            android:textSize="14sp" />
+            android:shadowColor="#CC000000"
+            android:shadowRadius="4"
+            android:textSize="12sp" />
     </FrameLayout>
 
     <LinearLayout
@@ -37,13 +45,13 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="14dp"
-        android:paddingVertical="10dp">
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="7dp">
 
         <View
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:layout_marginEnd="10dp"
+            android:layout_width="7dp"
+            android:layout_height="7dp"
+            android:layout_marginEnd="8dp"
             android:background="@drawable/live_dot" />
 
         <TextView
@@ -51,7 +59,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
         <TextView
@@ -60,6 +68,6 @@
             android:layout_marginStart="8dp"
             android:text="· Doorbell"
             android:textColor="#99FFFFFF"
-            android:textSize="16sp" />
+            android:textSize="13sp" />
     </LinearLayout>
 </LinearLayout>

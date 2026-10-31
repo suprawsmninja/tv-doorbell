@@ -14,10 +14,18 @@ final class Settings {
         prefs = context.getSharedPreferences("doorbell", Context.MODE_PRIVATE);
     }
 
-    /** The camera's RTSP link, e.g. rtsp://192.168.1.50:7447/abc123. */
-    String streamUrl() { return prefs.getString("url", ""); }
+    /** Home Assistant base URL, e.g. http://homeassistant.local:8123. */
+    String haUrl() { return prefs.getString("ha_url", "http://homeassistant.local:8123"); }
 
-    /** Shared secret Home Assistant sends with each call. Empty means no check. */
+    /** Home Assistant long-lived access token. */
+    String haToken() { return prefs.getString("ha_token", ""); }
+
+    /** The doorbell's event entity; a state change with event_type "ring" is a press. */
+    String eventEntity() { return prefs.getString("event", "event.doorbell_doorbell"); }
+
+    String cameraEntity() { return prefs.getString("camera", "camera.doorbell_medium"); }
+
+    /** Shared secret for the local test listener. Empty means no check. */
     String token() { return prefs.getString("token", ""); }
 
     int port() { return prefs.getInt("port", DEFAULT_PORT); }

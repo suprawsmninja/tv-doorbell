@@ -7,7 +7,8 @@ import android.os.Bundle;
 
 /**
  * Headless entry point for ADB:
- * am start -n com.luke.doorbell/.ConfigActivity --es url rtsp://... --es token ... [--ei seconds 30] [--ez test true]
+ * am start -n com.luke.doorbell/.ConfigActivity --es ha_token ... [--es ha_url http://...:8123]
+ *     [--es token ...] [--ei seconds 30] [--ez test true]
  * Saves any extras given, (re)starts the service and closes.
  */
 public class ConfigActivity extends Activity {
@@ -16,7 +17,7 @@ public class ConfigActivity extends Activity {
         super.onCreate(savedInstanceState);
         Intent in = getIntent();
         SharedPreferences.Editor edit = new Settings(this).edit();
-        for (String key : new String[] {"url", "token", "label"}) {
+        for (String key : new String[] {"ha_url", "ha_token", "event", "camera", "token", "label"}) {
             if (in.hasExtra(key)) edit.putString(key, in.getStringExtra(key));
         }
         for (String key : new String[] {"port", "seconds"}) {
