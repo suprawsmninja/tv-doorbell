@@ -5,6 +5,7 @@ import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -51,6 +52,8 @@ final class Overlay {
 
     /** Shows the tile, or keeps it up longer if it is already showing (a second ring). */
     void show(int seconds) {
+        // Nobody to show it to, and no point keeping Home Assistant's stream busy.
+        if (!context.getSystemService(PowerManager.class).isInteractive()) return;
         handler.removeCallbacks(autoHide);
         handler.postDelayed(autoHide, (seconds > 0 ? seconds : settings.seconds()) * 1000L);
         if (tile != null) return;
