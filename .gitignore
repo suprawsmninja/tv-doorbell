@@ -4,3 +4,4 @@ app/build/
 local.properties
 *.apk
 secrets.properties
+.DS_Store

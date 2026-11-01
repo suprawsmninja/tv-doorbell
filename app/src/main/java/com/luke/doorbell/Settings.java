@@ -25,7 +25,7 @@ final class Settings {
 
     String cameraEntity() { return prefs.getString("camera", "camera.doorbell_medium"); }
 
-    /** Shared secret for the local test listener. Empty means no check. */
+    /** Shared secret for the local test listener. Empty leaves the listener off. */
     String token() { return prefs.getString("token", ""); }
 
     int port() { return prefs.getInt("port", DEFAULT_PORT); }

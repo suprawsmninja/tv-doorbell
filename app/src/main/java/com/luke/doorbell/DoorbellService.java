@@ -40,11 +40,14 @@ public class DoorbellService extends Service {
         ha.start();
 
         if (listener != null) listener.close();
-        listener = new HttpListener(settings.port(), settings.token(), new HttpListener.Commands() {
-            @Override public void show(int seconds) { main.post(() -> overlay.show(seconds)); }
-            @Override public void hide() { main.post(overlay::hide); }
-        });
-        listener.start();
+        listener = null;
+        if (!settings.token().isEmpty()) {
+            listener = new HttpListener(settings.port(), settings.token(), new HttpListener.Commands() {
+                @Override public void show(int seconds) { main.post(() -> overlay.show(seconds)); }
+                @Override public void hide() { main.post(overlay::hide); }
+            });
+            listener.start();
+        }
 
         String action = intent == null ? null : intent.getAction();
         if (ACTION_SHOW.equals(action)) overlay.show(0);
